@@ -182,6 +182,7 @@ Intai am folosit un CNN simplu, la care am mai adaugat si scos layere, dar acest
 - Pentru functia de activare am folosit ReLu, am incercat si Sigmoid si TanH, dar erau mai slabe
 
 <img src="https://github.com/DavidV1600/IA_Graphs/blob/main/Screenshot_6.png?raw=true" alt="hyper graph" width="600" height="300">
+
 **lr = learning rate pt Adam*
 
 **do = dropout rate*
@@ -198,35 +199,40 @@ Acesta se plafona in zona de ***0.68***, pe care o atingea dupa aproximativ **10
 
 1. Folosirea ***Inception Modules***. Ce sunt si ce fac ele?
 - Sunt configurate pentru a scoate mai puține hărți de caracteristici decât intrările lor, deci ele servesc ca straturi de blocaj, ceea ce înseamnă că reduc dimensionalitatea. Acest lucru taie costul de calcul și numărul de parametri, accelerând antrenamentul și îmbunătățirea generalizării. Mai jos este o poza care reprezinta in mare cum arata un inception module.
+
 <img src="https://github.com/DavidV1600/IA_Graphs/blob/main/inception.png?raw=true" alt="Histogram of Values" width="600" height="300">
+
 - Layeurile de 1x1 sunt folosite pentru a putea schimba numarul de canale, si de asemenea ele se focuseaza pe legatura dintre mape, decat pe mape in sine
 
 2. Folosirea ***Skip Connections***. Ce sunt si ce fac ele?
 - Output unui start este, de asemenea adăugat si la ieșirea unui alt strat situat mai sus.
+
 <img src="https://github.com/DavidV1600/IA_Graphs/blob/main/skin_conn.png?raw=true" alt="skip" width="600" height="300">
 
 3. Folosire ***Residual Blocks*** Ce sunt si ce fac ele?
 - Practic reprezinta un mini CNN, in care sunt folosite ***skip connections***. Sunt utile deoarece, rețeaua poate începe să facă progrese chiar dacă mai multe straturi nu au început încă să învețe.
+
 <img src="https://github.com/DavidV1600/IA_Graphs/blob/main/residual.png?raw=true" alt="block_residual" width="600" height="300">
 
 4. Folosirea ***SE Blocks*** (Squeeze and Excitation Network) Ce sunt si ce fac ele?
 - Un bloc SE analizează ieșirea output-ului unui bloc la care este atasat, concentrându-se exclusiv pe adâncime, adica nu cauta pattern-uri intr-o mapa ci pattern-uri intre mape și învață care mape sunt de obicei cele mai active împreună. Apoi folosește aceste informații pentru a recalibra weights-urile lor.
 Este folosit de obicei inauntrul ***Residual Blocks*** si ***Inception Modules***
+
 <img src="https://github.com/DavidV1600/IA_Graphs/blob/main/se_bloc.png?raw=true" alt="bloc_se" width="600" height="300">
 <img src="https://github.com/DavidV1600/IA_Graphs/blob/main/bloc.png?raw=true" alt="se_cu_restul" width="600" height="300">
 
 Astfel asa arata noul model care foloseste aceste tehnici:
 
-ResidualBlockWithSE
+BlocRezidual
 | Nr. Layer        | Tip                               | Marime input           | Marime output         | Functie de activare       |
 |------------------|-----------------------------------|------------------------|-----------------------|---------------------------|
 | 1                | Conv2d (3x3) + BN + ReLU          | (Batch, 256, H/4, W/4) | (Batch, 256, H/4, W/4)| ReLU                      |
 | 2                | Conv2d (3x3) + BN                 | (Batch, 256, H/4, W/4) | (Batch, 256, H/4, W/4)| -                         |
-| 3                | SE Block                          | (Batch, 256, H/4, W/4) | (Batch, 256, H/4, W/4)| -                         |
-| 4                | Shortcut Connection (Identity)    | (Batch, 256, H/4, W/4) | (Batch, 256, H/4, W/4)| -                         |
+| 3                | Bloc_SE                          | (Batch, 256, H/4, W/4) | (Batch, 256, H/4, W/4)| -                         |
+| 4                |               Identity            | (Batch, 256, H/4, W/4) | (Batch, 256, H/4, W/4)| -                         |
 | 5                | Addition and ReLU                 | (Batch, 256, H/4, W/4) | (Batch, 256, H/4, W/4)| ReLU                      |
 
-InceptionModuleWithSE
+ModulInception
 | Nr. Layer        | Tip                               | Marime input           | Marime output         | Functie de activare       |
 |------------------|-----------------------------------|------------------------|-----------------------|---------------------------|
 | 1                | Conv2d (1x1) + BN + ReLU (Branch 1) | (Batch, 32, H/2, W/2) | (Batch, 32, H/2, W/2)| ReLU                      |
@@ -235,20 +241,20 @@ InceptionModuleWithSE
 | 4                | Conv2d (1x1) + BN + ReLU (Branch 3) | (Batch, 32, H/2, W/2) | (Batch, 32, H/2, W/2)| ReLU                      |
 | 5                | Conv2d (5x5) + BN + ReLU (Branch 3) | (Batch, 32, H/2, W/2) | (Batch, 32, H/2, W/2)| ReLU                      |
 | 6                | MaxPool2d + Conv2d (1x1) + BN + ReLU (Branch 4) | (Batch, 32, H/2, W/2) | (Batch, 32, H/2, W/2)| ReLU          |
-| 7                | Concatenate                        | (Batch, 32, H/2, W/2) x 4 | (Batch, 128, H/2, W/2) |          -           |
-| 8                | SE Block                           | (Batch, 128, H/2, W/2) | (Batch, 128, H/2, W/2)|              -           |
+| 7                | Concatenare                        | (Batch, 32, H/2, W/2) x 4 | (Batch, 128, H/2, W/2) |          -           |
+| 8                | Bloc_SE                           | (Batch, 128, H/2, W/2) | (Batch, 128, H/2, W/2)|              -           |
 
 Model
 | Nr. Layer        | Tip                               | Marime input           | Marime output         | Functie de activare       |
 |------------------|-----------------------------------|------------------------|-----------------------|---------------------------|
 | 1                | Conv2d + BN + ReLU                | (Batch, 3, H, W)       | (Batch, 32, H, W)     | ReLU                      |
 | 2                | MaxPool2d                         | (Batch, 32, H, W)      | (Batch, 32, H/2, W/2) | -                         |
-| 3                | InceptionModuleWithSE (Inception1)| (Batch, 32, H/2, W/2)  | (Batch, 128, H/2, W/2)| ReLU                      |
+| 3                | Modul_Inception| (Batch, 32, H/2, W/2)  | (Batch, 128, H/2, W/2)| ReLU                      |
 | 4                | MaxPool2d                         | (Batch, 128, H/2, W/2) | (Batch, 128, H/4, W/4)| -                         |
-| 5                | InceptionModuleWithSE (Inception2)| (Batch, 128, H/4, W/4) | (Batch, 256, H/4, W/4)| ReLU                      |
-| 6                | ResidualBlockWithSE (Residual1)   | (Batch, 256, H/4, W/4) | (Batch, 256, H/4, W/4)| ReLU                      |
+| 5                | Modul_Inception| (Batch, 128, H/4, W/4) | (Batch, 256, H/4, W/4)| ReLU                      |
+| 6                | BlocRezidual   | (Batch, 256, H/4, W/4) | (Batch, 256, H/4, W/4)| ReLU                      |
 | 7                | MaxPool2d                         | (Batch, 256, H/4, W/4) | (Batch, 256, H/8, W/8)| -                         |
-| 8                | ResidualBlockWithSE (Residual2)   | (Batch, 256, H/8, W/8) | (Batch, 256, H/8, W/8)| ReLU                      |
+| 8                | Bloc_Rezidual   | (Batch, 256, H/8, W/8) | (Batch, 256, H/8, W/8)| ReLU                      |
 | 9                | Conv2d + BN + ReLU                | (Batch, 256, H/8, W/8) | (Batch, 64, H/8, W/8) | ReLU                      |
 | 10               | MaxPool2d                         | (Batch, 64, H/8, W/8)  | (Batch, 64, H/16, W/16)| -                        |
 | 11               | Global Avg Pool                   | (Batch, 64, H/16, W/16)| (Batch, 64, 1, 1)     | -                         |
