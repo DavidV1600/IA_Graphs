@@ -196,16 +196,24 @@ Intai am folosit un CNN simplu, la care am mai adaugat si scos layere, dar acest
 
 Acesta se plafona in zona de ***0.68***, pe care o atingea dupa aproximativ **10-12** epoci, indiferent de adaugarea altor straturi si de schimbarea parametrilor am observat ca aceasta este zona unde se plafoneaza. Astfel am apelat la tehnici mai avansate (din cartea lui Aurelien Geron "Hands-On-Machine-Learning-with-Scikit-Learn-Keras-and-Tensorflow").
 
-1. Folosirea ***Inception Modules***. Ce sunt si fac ele?
-Deși nu pot captura modele spațiale, pot captura modele de-a lungul dimensiunii adâncimii.
-- Sunt configurate pentru a scoate mai puține hărți de caracteristici decât intrările lor, deci ele servesc ca straturi de blocaj, ceea ce înseamnă că reduc dimensionalitatea. Acest lucru taie costul de calcul și numărul de parametri, accelerând antrenamentul și îmbunătățirea generalizării.
+1. Folosirea ***Inception Modules***. Ce sunt si ce fac ele?
+- Sunt configurate pentru a scoate mai puține hărți de caracteristici decât intrările lor, deci ele servesc ca straturi de blocaj, ceea ce înseamnă că reduc dimensionalitatea. Acest lucru taie costul de calcul și numărul de parametri, accelerând antrenamentul și îmbunătățirea generalizării. Mai jos este o poza care reprezinta in mare cum arata un inception module.
+<img src="https://github.com/DavidV1600/IA_Graphs/blob/main/inception.png?raw=true" alt="Histogram of Values" width="600" height="300">
+- Layeurile de 1x1 sunt folosite pentru a putea schimba numarul de canale, si de asemenea ele se focuseaza pe legatura dintre mape, decat pe mape in sine
 
-2. Folosirea ***Skip Connections***. Ce sunt si fac ele?
-- Output unui start este, de asemenea adăugat si la ieșirea unui stratul situat mai sus. E util deoarece, rețeaua poate începe să facă progrese chiar dacă mai multe straturi nu au început încă să învețe.
+2. Folosirea ***Skip Connections***. Ce sunt si ce fac ele?
+- Output unui start este, de asemenea adăugat si la ieșirea unui alt strat situat mai sus.
+<img src="https://github.com/DavidV1600/IA_Graphs/blob/main/skin_conn.png?raw=true" alt="skip" width="600" height="300">
 
-3. Folosirea ***SE Blocks*** (Squeeze and Excitation Network) Ce sunt si fac ele?
-- Un bloc SE analizează ieșirea output-ul unui bloc la care este atasat, concentrându-se exclusiv pe adâncime, adica nu cauta pattern-uri intr-o mapa si pattern-uri intre mape și învață care este mape sunt de obicei cele mai active împreună. Apoi folosește aceste informații pentru a recalibra weights-urile lor.
+3. Folosire ***Residual Blocks*** Ce sunt si ce fac ele?
+- Practic reprezinta un mini CNN, in care sunt folosite ***skip connections***. Sunt utile deoarece, rețeaua poate începe să facă progrese chiar dacă mai multe straturi nu au început încă să învețe.
+<img src="https://github.com/DavidV1600/IA_Graphs/blob/main/residual.png?raw=true" alt="block_residual" width="600" height="300">
 
+4. Folosirea ***SE Blocks*** (Squeeze and Excitation Network) Ce sunt si ce fac ele?
+- Un bloc SE analizează ieșirea output-ului unui bloc la care este atasat, concentrându-se exclusiv pe adâncime, adica nu cauta pattern-uri intr-o mapa ci pattern-uri intre mape și învață care mape sunt de obicei cele mai active împreună. Apoi folosește aceste informații pentru a recalibra weights-urile lor.
+Este folosit de obicei inauntrul ***Residual Blocks*** si ***Inception Modules***
+<img src="https://github.com/DavidV1600/IA_Graphs/blob/main/se_bloc.png?raw=true" alt="bloc_se" width="600" height="300">
+<img src="https://github.com/DavidV1600/IA_Graphs/blob/main/bloc.png?raw=true" alt="se_cu_restul" width="600" height="300">
 
 Astfel asa arata noul model care foloseste aceste tehnici:
 
